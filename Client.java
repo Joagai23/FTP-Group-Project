@@ -1,22 +1,41 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Client {
 
     private final int connectionPort = 21;
-    private int dataPort;
+    private final int dataPort = 22;
     private Socket connectionSocket;
     private Socket dataSocket;
+    private BufferedReader inputConnectionSocket;
+    private PrintWriter outputConnectionSocket;
+    private BufferedReader inputDataSocket;
+    private PrintWriter outputDataSocket;
+
+    /***************************************************************/
+
+    public Client()
+    {
+        try {
+            // Establish connection with Server via connection socket
+            connectionSocket = new Socket("localhost", 21);
+
+            CreateWritersReaders();
+            // Send socket port number for data socket
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /***************************************************************/
 
     public int getConnectionPort()
     {
         return connectionPort;
-    }
-
-    public void setDataPort(int portNumber)
-    {
-        dataPort = portNumber;
     }
 
     public int getDataPort()
@@ -44,5 +63,36 @@ public class Client {
         return dataSocket;
     }
 
+    public BufferedReader getInputConnectionSocket()
+    {
+        return inputConnectionSocket;
+    }
+
+    public BufferedReader getInputDataSocket()
+    {
+        return inputDataSocket;
+    }
+
+    public PrintWriter getOutputConnectionSocket()
+    {
+        return outputConnectionSocket;
+    }
+
+    public PrintWriter getOutputDataSocket()
+    {
+        return outputDataSocket;
+    }
+
     /***************************************************************/
+
+    private void CreateWritersReaders()
+    {
+        // Get the inputConnectionSocket/outputConnectionSocket from the socket
+        try {
+            inputConnectionSocket = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+            outputConnectionSocket = new PrintWriter(connectionSocket.getOutputStream(), true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
