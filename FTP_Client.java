@@ -127,4 +127,6 @@ public class FTP_Client {
     	return command;
     }
     
+    
+    
 } // class CharacterClient
