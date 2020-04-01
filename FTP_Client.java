@@ -1,9 +1,9 @@
-import java.net.*;
-import java.util.Scanner;
 import java.io.*;
 
 public class FTP_Client {
-	
+
+	static BufferedReader inputKeyboard;
+
 	public enum Options {
 		
 		LIST( "List all files on a directory" ),
@@ -28,56 +28,47 @@ public class FTP_Client {
 	};
 
     public static void main(String args[]) {
-        int commandPort = 21;
-        Socket sCon = null;
-        BufferedReader input;
-        PrintWriter output;
+		Client client = new Client();
 
-        BufferedReader inputKeyboard;
         String data;
         String result;
+		String option;
         boolean connection = true;
-        
-        String option;
-        
 
         try {
-            // Connect to the server
-            sCon = new Socket("localhost", commandPort);
-
             while(connection)
             {
-                // Get the input/output from the socket
-                input = new BufferedReader(new InputStreamReader(sCon.getInputStream()));
-                output = new PrintWriter(sCon.getOutputStream(), true);
+                // Get the inputConnectionSocket/outputConnectionSocket from the socket
+                //inputConnectionSocket = new BufferedReader(new InputStreamReader(client.getConnectionSocket().getInputStream()));
+                //outputConnectionSocket = new PrintWriter(client.getConnectionSocket().getOutputStream(), true);
 
                 // Get text from the keyboard
                 inputKeyboard = new BufferedReader(new InputStreamReader(System.in));
-                //System.out.print("Write text (END to close the server): ");
+
+                // Send server number of port for data socket
                 
                 printMenu();
                 option = getOption(inputKeyboard);
-                
-                
+
                 //data = inputKeyboard.readLine();
 
                 // Send data to the server
-                //output.println(data);
-                output.println(option);
+                //outputConnectionSocket.println(data);
+                client.getOutputConnectionSocket().println(option);
                 // Read data from the server
-                result = input.readLine();
+                result = client.getInputConnectionSocket().readLine();
 
                 //System.out.println("Data = " + data + " --- Result = " + result);
                 System.out.println("Server says: " + result);
 
-                if(result.compareTo("END") == 0)
+                if(result.compareTo("QUIT") == 0)
                 {
                     connection = false;
                 }
             }
 
             // Close the connection
-            sCon.close();
+			client.getConnectionSocket().close();
         }  catch(IOException e) {
             System.out.println("Error: " + e);
         }
@@ -102,7 +93,7 @@ public class FTP_Client {
      */
     private static String getOption(BufferedReader inputKeyboard) {
     	
-    	int option = Options.values().length; //This will avoid get an option in case the input is a string
+    	int option = Options.values().length; //This will avoid get an option in case the inputConnectionSocket is a string
     	String command = "";
     	
     	do {
@@ -126,7 +117,5 @@ public class FTP_Client {
     	
     	return command;
     }
-    
-    
     
 } // class CharacterClient
