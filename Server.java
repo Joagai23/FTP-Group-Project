@@ -1,4 +1,7 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -10,6 +13,8 @@ public class Server {
     public Socket dataSocket;
     public ServerSocket serverConnectionSocket;
     public ServerSocket serverDataSocket;
+    private BufferedReader inputConnectionSocket;
+    private PrintWriter outputConnectionSocket;
 
     /***************************************************************/
 
@@ -24,6 +29,8 @@ public class Server {
             e.printStackTrace();
         }
     }
+
+    /***************************************************************/
 
     public int getConnectionPort()
     {
@@ -50,12 +57,33 @@ public class Server {
         return serverDataSocket;
     }
 
+    public BufferedReader getInputConnectionSocket()
+    {
+        return inputConnectionSocket;
+    }
+
+    public PrintWriter getOutputConnectionSocket()
+    {
+        return outputConnectionSocket;
+    }
+
     /***************************************************************/
 
     public void createServerSocket(ServerSocket socket, int portNumber)
     {
         try {
             socket = new ServerSocket(portNumber);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void CreateWritersReaders()
+    {
+        // Get the inputConnectionSocket/outputConnectionSocket from the socket
+        try {
+            inputConnectionSocket = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+            outputConnectionSocket = new PrintWriter(connectionSocket.getOutputStream(), true);
         } catch (IOException e) {
             e.printStackTrace();
         }
