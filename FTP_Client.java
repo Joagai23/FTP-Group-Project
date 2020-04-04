@@ -33,6 +33,8 @@ public class FTP_Client {
         String data;
         String result;
 		String option;
+		String command;
+		String path;
         boolean connection = true;
 
         try {
@@ -49,12 +51,16 @@ public class FTP_Client {
                 
                 printMenu();
                 option = getOption(inputKeyboard);
+                path = getPath(inputKeyboard);
+                command = getCommand(option, path);
+                
+                System.out.println("main " + command);
 
                 //data = inputKeyboard.readLine();
 
                 // Send data to the server
                 //outputConnectionSocket.println(data);
-                client.getOutputConnectionSocket().println(option);
+                client.getOutputConnectionSocket().println(command);
                 // Read data from the server
                 result = client.getInputConnectionSocket().readLine();
 
@@ -115,6 +121,53 @@ public class FTP_Client {
     	command = Options.values()[option].name();
     	System.out.println( "You have choose to: " + Options.values()[option].description );
     	
+    	return command;
+    }
+    
+    /**
+     * Ask the user for a path
+     * 
+     * @param inputKeyboard
+     * @return path
+     */
+    private static String getPath(BufferedReader inputKeyboard) {
+    	
+    	String path = "";
+    	
+    	System.out.println( "Introduce a path: " );
+    	try {
+			path = inputKeyboard.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	return path;
+    }
+    
+    /**
+     * It will return the complete command that we will send to the server
+     * 
+     * @param option 	//It will receive the Option string, ex. LIST.
+     * @param path 		//Path that is required for some commands 
+     * @return command
+     */
+    private static String getCommand(String option, String path) {
+    	
+    	String command = "";
+    	String SP = " ";
+    	String CRLF = "\\r\\n";
+    	
+    	command = option;
+    	
+    	if( path.isEmpty() || path == null ) {
+    		command = command.concat(CRLF);
+    	}
+    	else {
+    		command = command.concat(SP).concat(path).concat(CRLF);
+    	}
+    	
+    	System.out.println("func " + command);
     	return command;
     }
     
