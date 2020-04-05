@@ -7,23 +7,23 @@ import java.net.Socket;
 
 public class Server {
 
-    private final int connectionPort = 21;
+    private final int commandPort = 21;
     private int dataPort;
-    public Socket connectionSocket;
+    public Socket commandSocket;
     public Socket dataSocket;
     public ServerSocket serverConnectionSocket;
     public ServerSocket serverDataSocket;
-    private BufferedReader inputConnectionSocket;
-    private PrintWriter outputConnectionSocket;
+    private BufferedReader inputCommandSocket;
+    private PrintWriter outputCommandSocket;
 
     /***************************************************************/
 
     public Server()
     {
-        connectionSocket = new Socket();
+        commandSocket = new Socket();
         try
         {
-            serverConnectionSocket = new ServerSocket(connectionPort);
+            serverConnectionSocket = new ServerSocket(commandPort);
         } catch (IOException e)
         {
             e.printStackTrace();
@@ -32,14 +32,16 @@ public class Server {
 
     /***************************************************************/
 
-    public int getConnectionPort()
+    public int getCommandPort()
     {
-        return connectionPort;
+        return commandPort;
     }
 
     public void setDataPort(int portNumber)
     {
         dataPort = portNumber;
+        System.out.println("Data port number set to: " + portNumber);
+        outputCommandSocket.println("OK");
     }
 
     public int getDataPort()
@@ -57,14 +59,14 @@ public class Server {
         return serverDataSocket;
     }
 
-    public BufferedReader getInputConnectionSocket()
+    public BufferedReader getInputCommandSocket()
     {
-        return inputConnectionSocket;
+        return inputCommandSocket;
     }
 
-    public PrintWriter getOutputConnectionSocket()
+    public PrintWriter getOutputCommandSocket()
     {
-        return outputConnectionSocket;
+        return outputCommandSocket;
     }
 
     /***************************************************************/
@@ -78,13 +80,25 @@ public class Server {
         }
     }
 
-    public void CreateWritersReaders()
+    public void createCommandWritersReaders()
     {
-        // Get the inputConnectionSocket/outputConnectionSocket from the socket
+        // Get the inputCommandSocket/outputCommandSocket from the socket
         try {
-            inputConnectionSocket = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-            outputConnectionSocket = new PrintWriter(connectionSocket.getOutputStream(), true);
+            inputCommandSocket = new BufferedReader(new InputStreamReader(commandSocket.getInputStream()));
+            outputCommandSocket = new PrintWriter(commandSocket.getOutputStream(), true);
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void openDataSocket()
+    {
+        dataSocket = new Socket();
+        try
+        {
+            serverDataSocket = new ServerSocket(dataPort);
+        } catch (IOException e)
+        {
             e.printStackTrace();
         }
     }
