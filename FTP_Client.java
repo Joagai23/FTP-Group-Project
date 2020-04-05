@@ -35,26 +35,32 @@ public class FTP_Client {
 		String option;
 		String command;
 		String path;
-        boolean connection = true;
+		boolean connection = true;
 
         try {
-            while(connection)
+
+			String dataPortResponse = client.getInputConnectionSocket().readLine();
+			System.out.println(dataPortResponse);
+			if(dataPortResponse.compareTo("OK") != 0)
+			{
+				connection = false;
+			}
+
+			while(connection)
             {
                 // Get the inputConnectionSocket/outputConnectionSocket from the socket
-                //inputConnectionSocket = new BufferedReader(new InputStreamReader(client.getConnectionSocket().getInputStream()));
-                //outputConnectionSocket = new PrintWriter(client.getConnectionSocket().getOutputStream(), true);
+                //inputConnectionSocket = new BufferedReader(new InputStreamReader(client.getCommandSocket().getInputStream()));
+                //outputConnectionSocket = new PrintWriter(client.getCommandSocket().getOutputStream(), true);
 
                 // Get text from the keyboard
                 inputKeyboard = new BufferedReader(new InputStreamReader(System.in));
 
-                // Send server number of port for data socket
-                
                 printMenu();
                 option = getOption(inputKeyboard);
-                path = getPath(inputKeyboard);
-                command = getCommand(option, path);
-                
-                System.out.println("main " + command);
+				path = getPath(inputKeyboard);
+				command = getCommand(option, path);
+
+				//System.out.println("main " + command);
 
                 //data = inputKeyboard.readLine();
 
@@ -74,7 +80,7 @@ public class FTP_Client {
             }
 
             // Close the connection
-			client.getConnectionSocket().close();
+			client.getCommandSocket().close();
         }  catch(IOException e) {
             System.out.println("Error: " + e);
         }
@@ -123,52 +129,52 @@ public class FTP_Client {
     	
     	return command;
     }
-    
-    /**
-     * Ask the user for a path
-     * 
-     * @param inputKeyboard
-     * @return path
-     */
-    private static String getPath(BufferedReader inputKeyboard) {
-    	
-    	String path = "";
-    	
-    	System.out.println( "Introduce a path: " );
-    	try {
+
+	/**
+	 * Ask the user for a path
+	 *
+	 * @param inputKeyboard
+	 * @return path
+	 */
+	private static String getPath(BufferedReader inputKeyboard) {
+
+		String path = "";
+
+		System.out.println( "Introduce a path: " );
+		try {
 			path = inputKeyboard.readLine();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	
-    	return path;
-    }
-    
-    /**
-     * It will return the complete command that we will send to the server
-     * 
-     * @param option 	//It will receive the Option string, ex. LIST.
-     * @param path 		//Path that is required for some commands 
-     * @return command
-     */
-    private static String getCommand(String option, String path) {
-    	
-    	String command = "";
-    	String SP = " ";
-    	String CRLF = "\\r\\n";
-    	
-    	command = option;
-    	
-    	if( path.isEmpty() || path == null ) {
-    		command = command.concat(CRLF);
-    	}
-    	else {
-    		command = command.concat(SP).concat(path).concat(CRLF);
-    	}
-    	
-    	System.out.println("func " + command);
-    	return command;
-    }
-    
+
+		return path;
+	}
+
+	/**
+	 * It will return the complete command that we will send to the server
+	 *
+	 * @param option 	//It will receive the Option string, ex. LIST.
+	 * @param path 		//Path that is required for some commands
+	 * @return command
+	 */
+	private static String getCommand(String option, String path) {
+
+		String command = "";
+		String SP = " ";
+		String CRLF = "\\r\\n";
+
+		command = option;
+
+		if( path.isEmpty() || path == null ) {
+			command = command.concat(CRLF);
+		}
+		else {
+			command = command.concat(SP).concat(path).concat(CRLF);
+		}
+
+		//System.out.println("func " + command);
+		return command;
+	}
+
 } // class CharacterClient
