@@ -1,9 +1,13 @@
 import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.io.*;
 
 public class FTP_Server {
+	
+	private static String logFile = "serverLog.txt";
 
     public static void main(String args[]) {
 
@@ -11,6 +15,7 @@ public class FTP_Server {
         ServerOptions serverOptions = new ServerOptions(server);
         boolean serverControl = true;
         boolean connectionControl = false;
+        
         //BufferedReader input;
         //PrintWriter output;
 
@@ -37,6 +42,10 @@ public class FTP_Server {
                     // Send the text
                     //data = "220 Service ready for new user";
                     serverOptions.readOption(data);
+                    
+                    
+                    registerAction("test", data);
+                    
                     server.getOutputConnectionSocket().println(data);
                     
                     System.out.println("Server sends: " + data);
@@ -58,4 +67,27 @@ public class FTP_Server {
         // Close the server socket
         //server.getServerConnectionSocket().close();
     } // main
+    
+	
+	public static void registerAction(String user, String command) {
+	    
+	    LocalDateTime date = LocalDateTime.now();
+	    DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+	    String formattedDate = date.format(dateFormat);
+	    
+	    try {
+			BufferedWriter fileWriter = new BufferedWriter(new FileWriter(logFile, true));
+			
+			fileWriter.newLine();
+			fileWriter.write("User: " + user + " - " + formattedDate + " - " + command);
+			
+			fileWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+	}
+    
+    
 } // class CharacterServer
