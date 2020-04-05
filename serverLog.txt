@@ -1,0 +1,6 @@
+
+User: test - 05-04-2020 12:44:03 - null
+User: test - 05-04-2020 12:45:57 - RETR aaaaa\r\n
+User: test - 05-04-2020 12:46:03 - PWD bbbbbb\r\n
+User: test - 05-04-2020 12:46:06 - LIST pruebas\r\n
+User: test - 05-04-2020 12:46:08 - null
