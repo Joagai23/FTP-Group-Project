@@ -1,6 +1,11 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ServerOptions {
 
@@ -11,81 +16,83 @@ public class ServerOptions {
 		this.server = server;
 	}
 
+	private static String logFile = "serverLog.txt";
+
 	public enum Options {
 
-	LIST( "List all files on a directory" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-			listFiles("test", server.getOutputConnectionSocket());
-		}
-	},
-	RETR( "Download a file from server" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-		}
-	},
-	STOR( "Upload a file to the server" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-		}
-	},
-	PWD( "Get the path to the working directory" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-		}
-	},
-	CWD( "Change working directory" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-		}
-	},
-	MKD( "Create directory" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-		}
-	},
-	DELE( "Remove directory" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-		}
-	},
-	RNFR( "Delete a file" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-		}
-	},
-	PORT( "Port to establish data connection" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-		}
-	},
-	QUIT( "Exit" ) {
-		@Override
-		public void doWork() {
-			System.out.println(this.name());
-		}
-	};
+		LIST( "List all files on a directory" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+				listFiles("test", server.getOutputCommandSocket());
+			}
+		},
+		RETR( "Download a file from server" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+		STOR( "Upload a file to the server" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+		PWD( "Get the path to the working directory" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+		CWD( "Change working directory" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+		MKD( "Create directory" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+		DELE( "Remove directory" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+		RNFR( "Delete a file" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+		PORT( "Port to establish data connection" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+		QUIT( "Exit" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		};
 
-	private final String description;
+		private final String description;
 
-	Options( String description ) {
-		this.description = description;
-	}
+		Options( String description ) {
+			this.description = description;
+		}
 
-	public String getDescription() {
-		return description;
-	}
+		public String getDescription() {
+			return description;
+		}
 
-	public abstract void doWork();
+		public abstract void doWork();
 	}
 
 	/**
@@ -102,32 +109,32 @@ public class ServerOptions {
 
 	}//readOption
 
-	public static void sendCodeMessage(int code /*,int code257*/, PrintWriter output ) {
+	public static void sendCodeMessage(int code /*,int code257*/) {
 
 		switch( code ) {
 			case 150:
-				output.println( code + ": File status OK; about to open data connection.");
+				server.getOutputCommandSocket().println( code + ": File status OK; about to open data connection.");
 				break;
 			case 200:
-				output.println( code + ": Command okey.");
+				server.getOutputCommandSocket().println( code + ": Command okey.");
 				break;
 			case 202:
-				output.println( code + ": Command not implemented, superfluous at this site.");
+				server.getOutputCommandSocket().println( code + ": Command not implemented, superfluous at this site.");
 				break;
 			case 220:
-				output.println( code + ": Service ready for new user.");
+				server.getOutputCommandSocket().println( code + ": Service ready for new user.");
 				break;
 			case 221:
-				output.println( code + ": Service closing control conection");
+				server.getOutputCommandSocket().println( code + ": Service closing control conection");
 				break;
 			case 226:
-				output.println( code + ": Closing data connection. Requested file action successful.");
+				server.getOutputCommandSocket().println( code + ": Closing data connection. Requested file action successful.");
 				break;
 			case 230:
-				output.println( code + ": User logged in, proceed.");
+				server.getOutputCommandSocket().println( code + ": User logged in, proceed.");
 				break;
 			case 250:
-				output.println( code + ": Requested file action OK, completed.");
+				server.getOutputCommandSocket().println( code + ": Requested file action OK, completed.");
 				break;
 			case 257:
             /*
@@ -150,55 +157,55 @@ public class ServerOptions {
             */
 				break;
 			case 331:
-				output.println( code + ": User name OK, need password.");
+				server.getOutputCommandSocket().println( code + ": User name OK, need password.");
 				break;
 			case 350:
-				output.println( code + ": Requested file action pending futher information.");
+				server.getOutputCommandSocket().println( code + ": Requested file action pending futher information.");
 				break;
 			case 421:
-				output.println( code + ": Service not available, closing control connection.");
+				server.getOutputCommandSocket().println( code + ": Service not available, closing control connection.");
 				break;
 			case 453:
-				output.println( code + ": Requested action not taken. File name not allowed.");
+				server.getOutputCommandSocket().println( code + ": Requested action not taken. File name not allowed.");
 				break;
 			case 425:
-				output.println( code + ": Can't open data connection.");
+				server.getOutputCommandSocket().println( code + ": Can't open data connection.");
 				break;
 			case 426:
-				output.println( code + ": Connection closed; transfer aborted.");
+				server.getOutputCommandSocket().println( code + ": Connection closed; transfer aborted.");
 				break;
 			case 450:
-				output.println( code + ": Requested file action not taken. File unavailable.");
+				server.getOutputCommandSocket().println( code + ": Requested file action not taken. File unavailable.");
 				break;
 			case 451:
-				output.println( code + ": Requested action aborted: local error in processing.");
+				server.getOutputCommandSocket().println( code + ": Requested action aborted: local error in processing.");
 				break;
 			case 452:
-				output.println( code + ": Requested action not taken. Insufficient storage space in system.");
+				server.getOutputCommandSocket().println( code + ": Requested action not taken. Insufficient storage space in system.");
 				break;
 			case 500:
-				output.println( code + ": Syntax error, command unrecognized.");
+				server.getOutputCommandSocket().println( code + ": Syntax error, command unrecognized.");
 				break;
 			case 501:
-				output.println( code + ": Syntax error in parameters or arguments.");
+				server.getOutputCommandSocket().println( code + ": Syntax error in parameters or arguments.");
 				break;
 			case 502:
-				output.println( code + ": Command not implemented.");
+				server.getOutputCommandSocket().println( code + ": Command not implemented.");
 				break;
 			case 503:
-				output.println( code + ": Bad sequence of commands.");
+				server.getOutputCommandSocket().println( code + ": Bad sequence of commands.");
 				break;
 			case 530:
-				output.println( code + ": Not logged in.");
+				server.getOutputCommandSocket().println( code + ": Not logged in.");
 				break;
 			case 550:
-				output.println( code + ": Requested action not taken. File unavailable.");
+				server.getOutputCommandSocket().println( code + ": Requested action not taken. File unavailable.");
 				break;
 			case 553:
-				output.println( code + ": Requested action not taken. File name not allowed.");
+				server.getOutputCommandSocket().println( code + ": Requested action not taken. File name not allowed.");
 				break;
 			default:
-				output.println( "ERROR, unknown code: " + code );
+				server.getOutputCommandSocket().println( "ERROR, unknown code: " + code );
 				break;
 		}
 	}
@@ -229,12 +236,50 @@ public class ServerOptions {
 			path = listPath;
 		}
 
-		sendCodeMessage(150, output);
-		sendCodeMessage(226, output);
-		sendCodeMessage(425, output);
-		sendCodeMessage(451, output);
-		sendCodeMessage(450, output);
-		sendCodeMessage(550, output);
+		sendCodeMessage(150);
+		sendCodeMessage(226);
+		sendCodeMessage(425);
+		sendCodeMessage(451);
+		sendCodeMessage(450);
+		sendCodeMessage(550);
 
 	}
+
+
+	public static void registerAction(String user, String command) {
+
+		LocalDateTime date = LocalDateTime.now();
+		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+		String formattedDate = date.format(dateFormat);
+
+		try {
+			BufferedWriter fileWriter = new BufferedWriter(new FileWriter(logFile, true));
+
+			fileWriter.newLine();
+			fileWriter.write("User: " + user + " - " + formattedDate + " - " + command);
+
+			fileWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * It receives the full command send by client and returns just the option selected
+	 *
+	 * @param clientCommand
+	 * @return
+	 */
+	public static String getOption(String clientCommand) {
+		String option = "";
+		String[] parts;
+
+		parts = clientCommand.split(" |\\\\");
+		option = parts[0];
+
+		return option;
+	}
+
 }
