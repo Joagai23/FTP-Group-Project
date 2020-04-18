@@ -48,7 +48,8 @@ public class FTP_Server {
                     //data = data.toUpperCase();
                     // Send the text
                     //data = "220 Service ready for new user";
-                    serverOptions.readOption(data);
+                   
+                    serverOptions.readOption(getOption(data));
 
                     registerAction("test", data);
 
@@ -59,6 +60,7 @@ public class FTP_Server {
                     if(data.compareTo("QUIT") == 0)
                     {
                         connectionControl = false;
+                        ServerOptions.sendCodeMessage(221, server.getOutputCommandSocket());
                     }
                 }
 
@@ -92,6 +94,22 @@ public class FTP_Server {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+    
+    /**
+     * It receives the full command send by client and returns just the option selected
+     * 
+     * @param clientCommand
+     * @return
+     */
+    public static String getOption(String clientCommand) {
+    	String option = "";
+    	String[] parts;
+    	
+    	parts = clientCommand.split(" |\\\\");
+    	option = parts[0];
+    	
+    	return option;
     }
 
 } // class CharacterServer
