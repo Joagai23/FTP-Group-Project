@@ -62,6 +62,12 @@ public class ServerOptions {
 			System.out.println(this.name());
 		}
 	},
+	PORT( "Port to establish data connection" ) {
+		@Override
+		public void doWork() {
+			System.out.println(this.name());
+		}
+	},
 	QUIT( "Exit" ) {
 		@Override
 		public void doWork() {
