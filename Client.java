@@ -151,11 +151,20 @@ public class Client {
     	return localhost;
     }
     
-    private String getCommandPortConnection() {
+    private String getCommandPortConnection(int port) {
+    	
     	String command = "";
     	String hostport = getLocalhost();
+    	String p1 = "";
+    	String p2 = "";
+    	String binaryPort = Integer.toBinaryString(0x10000 | port).substring(1);
+    
+    	p1 = Integer.toString(Integer.parseInt(binaryPort.substring(0, 8), 2));
+    	p2 = Integer.toString(Integer.parseInt(binaryPort.substring(8, 16), 2));
     	
-    	command = command.concat("PORT").concat(" ").concat(hostport).concat("\\r\\n");
+    	command = command.concat("PORT").concat(" ").concat(hostport).concat(".").concat(p1).concat(".").concat(p2).concat("\\r\\n");
+    	
+    	System.out.println(command);
     	
     	return command;	
     }
