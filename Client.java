@@ -4,7 +4,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class Client {
 
@@ -27,18 +29,6 @@ public class Client {
         establishConnection();
         createCommandWritersReaders();
         sendDataPortNumber();
-
-
-    	/*
-        try {
-            // Establish connection with Server via connection socket
-            commandSocket = new Socket("localhost", 21);
-            createCommandWritersReaders();
-            // Send socket port number for data socket
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
     }
 
     /***************************************************************/
@@ -134,38 +124,38 @@ public class Client {
         }
     }
 
-    private void sendDataPortNumber()
-    {
+    private void sendDataPortNumber() {
+
         outputConnectionSocket.println(dataPort);
     }
-    
+
     private String getLocalhost() {
-    	String localhost = "";
-		try {
-			localhost = InetAddress.getLocalHost().getHostAddress();
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-    	return localhost;
+        String localhost = "";
+        try {
+            localhost = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return localhost;
     }
-    
+
     private String getCommandPortConnection(int port) {
-    	
-    	String command = "";
-    	String hostport = getLocalhost();
-    	String p1 = "";
-    	String p2 = "";
-    	String binaryPort = Integer.toBinaryString(0x10000 | port).substring(1);
-    
-    	p1 = Integer.toString(Integer.parseInt(binaryPort.substring(0, 8), 2));
-    	p2 = Integer.toString(Integer.parseInt(binaryPort.substring(8, 16), 2));
-    	
-    	command = command.concat("PORT").concat(" ").concat(hostport).concat(".").concat(p1).concat(".").concat(p2).concat("\\r\\n");
-    	
-    	System.out.println(command);
-    	
-    	return command;	
+
+        String command = "";
+        String hostport = getLocalhost();
+        String p1 = "";
+        String p2 = "";
+        String binaryPort = Integer.toBinaryString(0x10000 | port).substring(1);
+
+        p1 = Integer.toString(Integer.parseInt(binaryPort.substring(0, 8), 2));
+        p2 = Integer.toString(Integer.parseInt(binaryPort.substring(8, 16), 2));
+
+        command = command.concat("PORT").concat(" ").concat(hostport).concat(".").concat(p1).concat(".").concat(p2).concat("\\r\\n");
+
+        System.out.println(command);
+
+        return command;
     }
 }
