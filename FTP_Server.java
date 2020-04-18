@@ -16,6 +16,7 @@ public class FTP_Server {
         //PrintWriter output;
 
         String data = "";
+        String option = "";
 
         while(true)
         {
@@ -48,14 +49,16 @@ public class FTP_Server {
                     //data = data.toUpperCase();
                     // Send the text
                     //data = "220 Service ready for new user";
+                    
+                    option = getOption(data);
                    
-                    serverOptions.readOption(getOption(data));
+                    serverOptions.readOption(option);
 
                     registerAction("test", data);
 
-                    server.getOutputCommandSocket().println(data);
+                    server.getOutputCommandSocket().println(option);
                     
-                    System.out.println("Server sends: " + data);
+                    System.out.println("Server sends: " + option);
 
                     if(data.compareTo("QUIT") == 0)
                     {
