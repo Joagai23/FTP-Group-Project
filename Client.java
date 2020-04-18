@@ -138,4 +138,27 @@ public class Client {
     {
         outputConnectionSocket.println(dataPort);
     }
+    
+    private String getLocalhost() {
+    	InetAddress inetAddress;
+    	String localhost = "";
+		try {
+			inetAddress = InetAddress.getLocalHost();
+			localhost = inetAddress.toString();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+    	return localhost;
+    }
+    
+    private String getCommandPortConnection() {
+    	String command = "";
+    	String hostport = getLocalhost();
+    	
+    	command = command.concat("PORT").concat(" ").concat(hostport).concat("\\r\\n");
+    	
+    	return command;	
+    }
 }
