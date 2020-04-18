@@ -1,10 +1,6 @@
 import java.io.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class FTP_Server {
-
-    private static String logFile = "serverLog.txt";
 
     public static void main(String args[]) {
 
@@ -27,43 +23,39 @@ public class FTP_Server {
                 server.commandSocket = server.serverConnectionSocket.accept();
                 connectionControl = true;
                 System.out.println("Connection accepted");
-				server.createCommandWritersReaders();
+                server.createCommandWritersReaders();
 
-				int dataPort = -1;
+                int dataPort = -1;
 
-				// Get data port number from the client and update value in server
-				while(dataPort == -1)
+                // Get data port number from the client and update value in server
+                while(dataPort == -1)
                 {
                     //put time out
                     dataPort = Integer.parseInt(server.getInputCommandSocket().readLine());
                 }
 
-				server.setDataPort(dataPort);
+                server.setDataPort(dataPort);
 
                 while(connectionControl)
                 {
                     // Read the data sent by the client
                     data =  server.getInputCommandSocket().readLine();
                     System.out.println("Server receives: " + data);
-                    // Convert text to Upper Case
-                    //data = data.toUpperCase();
-                    // Send the text
-                    //data = "220 Service ready for new user";
-                    
-                    option = getOption(data);
-                   
+
+                    option = serverOptions.getOption(data);
+
                     serverOptions.readOption(option);
 
-                    registerAction("test", data);
+                    serverOptions.registerAction("test", data);
 
                     server.getOutputCommandSocket().println(option);
-                    
+
                     System.out.println("Server sends: " + option);
 
-                    if(data.compareTo("QUIT") == 0)
+                    if(option.compareTo("QUIT") == 0)
                     {
                         connectionControl = false;
-                        ServerOptions.sendCodeMessage(221, server.getOutputCommandSocket());
+                        serverOptions.sendCodeMessage(221);
                     }
                 }
 
@@ -78,41 +70,4 @@ public class FTP_Server {
         // Close the server socket
         //server.getServerConnectionSocket().close();
     } // main
-
-    public static void registerAction(String user, String command) {
-
-        LocalDateTime date = LocalDateTime.now();
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-
-        String formattedDate = date.format(dateFormat);
-
-        try {
-            BufferedWriter fileWriter = new BufferedWriter(new FileWriter(logFile, true));
-
-            fileWriter.newLine();
-            fileWriter.write("User: " + user + " - " + formattedDate + " - " + command);
-
-            fileWriter.close();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * It receives the full command send by client and returns just the option selected
-     * 
-     * @param clientCommand
-     * @return
-     */
-    public static String getOption(String clientCommand) {
-    	String option = "";
-    	String[] parts;
-    	
-    	parts = clientCommand.split(" |\\\\");
-    	option = parts[0];
-    	
-    	return option;
-    }
-
 } // class CharacterServer
