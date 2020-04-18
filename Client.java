@@ -140,11 +140,9 @@ public class Client {
     }
     
     private String getLocalhost() {
-    	InetAddress inetAddress;
     	String localhost = "";
 		try {
-			inetAddress = InetAddress.getLocalHost();
-			localhost = inetAddress.toString();
+			localhost = InetAddress.getLocalHost().getHostAddress();
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
