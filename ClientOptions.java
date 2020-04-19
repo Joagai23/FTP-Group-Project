@@ -5,25 +5,80 @@ public class ClientOptions {
 
     public enum Options {
 
-        LIST( "List all files on a directory" ),
-        RETR( "Download a file from server" ),
-        STOR( "Upload a file to the server" ),
-        PWD( "Get the path to the working directory" ),
-        CWD( "Change working directory" ),
-        MKD( "Create directory" ),
-        DELE( "Remove directory" ),
-        RNFR( "Delete a file" ),
-        QUIT( "Exit" );
+        LIST( "List all files on a directory", true ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+        RETR( "Download a file from server", true ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+        STOR( "Upload a file to the server", true ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+        PWD( "Get the path to the working directory", false ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+        CWD( "Change working directory", true ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+        MKD( "Create directory", true ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+        RMD( "Remove directory", true ){
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+        DELE( "Remove file", true ){
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+        RNFR( "Delete a file", true ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		},
+        QUIT( "Exit", false ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+			}
+		};
 
         private final String description;
+        private final boolean needPath;
 
-        Options( String description ) {
+        Options( String description, boolean needPath ) {
             this.description = description;
+            this.needPath = needPath;
         }
 
         public String getDescription() {
             return description;
         }
+        
+        public abstract void doWork();
     };
 
     /**
@@ -113,8 +168,26 @@ public class ClientOptions {
             command = command.concat(SP).concat(path).concat(CRLF);
         }
 
-        //System.out.println("func " + command);
         return command;
+    }
+    
+    
+    /**
+     * Checks if the option needs a path to complete the command
+     * 
+     * @param option
+     * @return needPath
+     */
+    public static boolean needPath(String option) {
+    	
+    	boolean needPath = false;
+    	
+    	for ( Options options : Options.values() ) {
+            if( options.name().equals(option)) {
+            	needPath = options.needPath;
+            }
+        }
+    	return needPath;
     }
 
 }
