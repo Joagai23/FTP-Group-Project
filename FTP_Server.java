@@ -5,7 +5,7 @@ public class FTP_Server {
     public static void main(String args[]) {
 
         Server server = new Server();
-        ServerOptions serverOptions = new ServerOptions(server);
+
         boolean hasDataPortNumber = false;
         boolean connectionControl = false;
         //BufferedReader input;
@@ -42,11 +42,11 @@ public class FTP_Server {
                     data =  server.getInputCommandSocket().readLine();
                     System.out.println("Server receives: " + data);
 
-                    option = serverOptions.getOption(data);
+                    option = ServerOptions.getOption(data);
 
-                    serverOptions.readOption(option);
+                    ServerOptions.readOption(option);
 
-                    serverOptions.registerAction("test", data);
+                    ServerOptions.registerAction("test", data);
 
                     server.getOutputCommandSocket().println(option);
 
@@ -54,8 +54,8 @@ public class FTP_Server {
 
                     if(option.compareTo("QUIT") == 0)
                     {
+                    	ServerOptions.sendCodeMessage(221);
                         connectionControl = false;
-                        serverOptions.sendCodeMessage(221);
                     }
                 }
 
