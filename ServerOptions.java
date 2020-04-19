@@ -109,7 +109,12 @@ public class ServerOptions {
 
 	}//readOption
 
-	public static void sendCodeMessage(int code /*,int code257*/) {
+	
+	/**
+	 * Receives an Integer that will be the code and print the code to the client
+	 * @param code
+	 */
+	public static void sendCodeMessage(int code) {
 
 		switch( code ) {
 			case 150:
@@ -137,24 +142,7 @@ public class ServerOptions {
 				server.getOutputCommandSocket().println( code + ": Requested file action OK, completed.");
 				break;
 			case 257:
-            /*
-            switch( code257 ) {
-            case 1:
-                String path = getPathWorkingDirectory();
-                System.out.println( code + ": " + path);
-                break;
-            case 2:
-                String directory = getDirectoryName();
-                System.out.println( code + ": " + directory + " created.");
-                break;
-            case 3:
-                System.out.println( code + ": Entering Passive Mode (h1, h2, h3, h4, p1, p2)");
-                break;
-            default:
-                System.out.println( code );
-                break;
-            }
-            */
+                server.getOutputCommandSocket().println( code + ": Code 257");
 				break;
 			case 331:
 				server.getOutputCommandSocket().println( code + ": User name OK, need password.");
