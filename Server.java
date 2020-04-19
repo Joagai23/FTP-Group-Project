@@ -41,7 +41,8 @@ public class Server {
     {
         dataPort = portNumber;
         System.out.println("Data port number set to: " + portNumber);
-        outputCommandSocket.println("OK");
+        ServerOptions.sendCodeMessage(220);
+        //outputCommandSocket.println("OK");
     }
 
     public int getDataPort()
