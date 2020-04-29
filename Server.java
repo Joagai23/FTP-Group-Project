@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -15,6 +12,8 @@ public class Server {
     public ServerSocket serverDataSocket;
     private BufferedReader inputCommandSocket;
     private PrintWriter outputCommandSocket;
+    private PrintWriter outputCharacterDataSocket;
+    private DataOutputStream outputByteDataSocket;
 
     /***************************************************************/
 
@@ -32,32 +31,19 @@ public class Server {
 
     /***************************************************************/
 
-    public int getCommandPort()
+    public boolean setDataPort(int portNumber)
     {
-        return commandPort;
-    }
-
-    public void setDataPort(int portNumber)
-    {
-        dataPort = portNumber;
-        System.out.println("Data port number set to: " + portNumber);
-        ServerOptions.sendCodeMessage(220);
-        //outputCommandSocket.println("OK");
-    }
-
-    public int getDataPort()
-    {
-        return dataPort;
-    }
-
-    public ServerSocket getServerConnectionSocket()
-    {
-        return serverConnectionSocket;
-    }
-
-    public ServerSocket getServerDataSocket()
-    {
-        return serverDataSocket;
+        if(portNumber > 0 && portNumber < 65535)
+        {
+            dataPort = portNumber;
+            System.out.println("Data port number set to: " + portNumber);
+            return true;
+        }
+        else
+        {
+            System.out.println("Data port number is not available!");
+            return false;
+        }
     }
 
     public BufferedReader getInputCommandSocket()
@@ -70,16 +56,11 @@ public class Server {
         return outputCommandSocket;
     }
 
-    /***************************************************************/
+    public PrintWriter getOutputCharacterDataSocket(){ return outputCharacterDataSocket;}
 
-    public void createServerSocket(ServerSocket socket, int portNumber)
-    {
-        try {
-            socket = new ServerSocket(portNumber);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    public DataOutputStream getOutputByteDataSocket() { return outputByteDataSocket;}
+
+    /***************************************************************/
 
     public void createCommandWritersReaders()
     {
@@ -99,6 +80,31 @@ public class Server {
         {
             serverDataSocket = new ServerSocket(dataPort);
         } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void closeDataSocket()
+    {
+        try {
+            dataSocket.close();
+            serverDataSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Data connection closed");
+    }
+
+    public void createDataWriters(boolean characterMode){
+
+        try{
+            if(characterMode){
+                outputCharacterDataSocket = new PrintWriter(dataSocket.getOutputStream(), true);
+            }else{
+                outputByteDataSocket = new DataOutputStream(dataSocket.getOutputStream());
+            }
+        }catch (IOException e)
         {
             e.printStackTrace();
         }
