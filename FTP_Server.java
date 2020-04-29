@@ -5,11 +5,9 @@ public class FTP_Server {
     public static void main(String args[]) {
 
         Server server = new Server();
-
-        boolean hasDataPortNumber = false;
+        ServerOptions serverOptions = new ServerOptions(server);
+        
         boolean connectionControl = false;
-        //BufferedReader input;
-        //PrintWriter output;
 
         String data = "";
         String option = "";
@@ -25,16 +23,7 @@ public class FTP_Server {
                 System.out.println("Connection accepted");
                 server.createCommandWritersReaders();
 
-                int dataPort = -1;
-
-                // Get data port number from the client and update value in server
-                while(dataPort == -1)
-                {
-                    //put time out
-                    dataPort = Integer.parseInt(server.getInputCommandSocket().readLine());
-                }
-
-                server.setDataPort(dataPort);
+                serverOptions.sendCodeMessage(220);
 
                 while(connectionControl)
                 {
@@ -48,14 +37,12 @@ public class FTP_Server {
 
                     ServerOptions.registerAction("test", data);
 
-                    server.getOutputCommandSocket().println(option);
+                    if(option.compareTo("PURT") != 0) {
 
-                    System.out.println("Server sends: " + option);
-
-                    if(option.compareTo("QUIT") == 0)
-                    {
-                    	ServerOptions.sendCodeMessage(221);
-                        connectionControl = false;
+                        if(option.compareTo("QUIT") == 0)
+                        {
+                            connectionControl = false;
+                        }
                     }
                 }
 
