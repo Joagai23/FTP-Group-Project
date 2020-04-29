@@ -1,9 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -18,8 +13,8 @@ public class Client {
     private Socket dataSocket;
     private BufferedReader inputConnectionSocket;
     private PrintWriter outputConnectionSocket;
-    private BufferedReader inputDataSocket;
-    private PrintWriter outputDataSocket;
+    private BufferedReader inputCharDataSocket;
+    private DataInputStream inputByteDataSocket;
 
     /***************************************************************/
 
@@ -28,39 +23,13 @@ public class Client {
         setPortFromConfigFile();
         establishConnection();
         createCommandWritersReaders();
-        sendDataPortNumber();
     }
 
     /***************************************************************/
 
-    public int getCommandPort()
-    {
-        return commandPort;
-    }
-
-    public int getDataPort()
-    {
-        return dataPort;
-    }
-
-    public void setCommandSocket(Socket commandSocket)
-    {
-        this.commandSocket = commandSocket;
-    }
-
     public Socket getCommandSocket()
     {
         return commandSocket;
-    }
-
-    public void setDataSocket(Socket dataSocket)
-    {
-        this.dataSocket = dataSocket;
-    }
-
-    public Socket getDataSocket()
-    {
-        return dataSocket;
     }
 
     public BufferedReader getInputConnectionSocket()
@@ -68,19 +37,9 @@ public class Client {
         return inputConnectionSocket;
     }
 
-    public BufferedReader getInputDataSocket()
-    {
-        return inputDataSocket;
-    }
-
     public PrintWriter getOutputConnectionSocket()
     {
         return outputConnectionSocket;
-    }
-
-    public PrintWriter getOutputDataSocket()
-    {
-        return outputDataSocket;
     }
 
     /***************************************************************/
@@ -96,13 +55,28 @@ public class Client {
         }
     }
 
+    public void createDataReader(int mode){
+
+        try {
+
+            if(mode == 1){ // character mode
+                inputCharDataSocket = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
+            }else{ // byte mode
+                inputByteDataSocket = new DataInputStream(dataSocket.getInputStream());
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void setPortFromConfigFile() {
 
         try {
             BufferedReader fileReader = new BufferedReader(new FileReader(configFile));
             try {
                 commandPort = Integer.parseInt(fileReader.readLine());
-                System.out.println(commandPort);
+                System.out.println("Command port set to: " + commandPort);
                 fileReader.close();
             } catch (NumberFormatException | IOException e) {
                 // TODO Auto-generated catch block
@@ -124,9 +98,26 @@ public class Client {
         }
     }
 
-    private void sendDataPortNumber() {
+    public void openDataSocket() {
 
-        outputConnectionSocket.println(dataPort);
+        try {
+            dataSocket = new Socket(IP, dataPort);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Data connection open!");
+    }
+
+    public void closeDataSocket(){
+
+        try {
+            dataSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Data connection closed!");
     }
 
     private String getLocalhost() {
@@ -152,10 +143,30 @@ public class Client {
         p1 = Integer.toString(Integer.parseInt(binaryPort.substring(0, 8), 2));
         p2 = Integer.toString(Integer.parseInt(binaryPort.substring(8, 16), 2));
 
-        command = command.concat("PORT").concat(" ").concat(hostport).concat(".").concat(p1).concat(".").concat(p2).concat("\\r\\n");
+        command = command.concat("PURT").concat(" ").concat(hostport).concat(".").concat(p1).concat(".").concat(p2).concat("\\r\\n");
+
+        command = command.replace(".", ",");
 
         System.out.println(command);
 
         return command;
+    }
+
+    public String sendPort() {
+        return getCommandPortConnection(dataPort);
+    }
+
+    public String readData(int mode){
+        String inputFromServer = "default";
+        try {
+            if (mode == 1) {
+                inputFromServer = inputCharDataSocket.readLine();
+            } else {
+                inputFromServer = inputByteDataSocket.readLine();
+            }
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+        return inputFromServer;
     }
 }
