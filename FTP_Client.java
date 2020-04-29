@@ -10,7 +10,6 @@ public class FTP_Client {
 
         String result;
 		String option;
-		String command;
 		String path = "";
 		boolean connection = true;
 
@@ -28,22 +27,17 @@ public class FTP_Client {
                 // Get text from the keyboard
                 inputKeyboard = new BufferedReader(new InputStreamReader(System.in));
 
-				ClientOptions.printMenu();
+                ClientOptions.printMenu();
                 option = ClientOptions.getOption(inputKeyboard);
-                
-                if(ClientOptions.needPath(option)) {
-                	path = ClientOptions.getPath(inputKeyboard);
+
+                if (ClientOptions.needPath(option)) {
+                    path = ClientOptions.getPath(inputKeyboard);
                 }
-				command = ClientOptions.getCommand(option, path);
 
-                // Send data to the server
-                client.getOutputConnectionSocket().println(command);
-                // Read data from the server
-                result = client.getInputConnectionSocket().readLine();
-
+                result = ClientOptions.FTPClient(client, option, path);
                 System.out.println("Server says: " + result);
 
-                if(result.compareTo("QUIT") == 0)
+                if(result.contains("221"))
                 {
                     connection = false;
                 }
@@ -51,6 +45,7 @@ public class FTP_Client {
 
             // Close the connection
 			client.getCommandSocket().close();
+			System.out.println("Client connection closed!");
         }  catch(IOException e) {
             System.out.println("Error: " + e);
         }
