@@ -17,6 +17,7 @@ public class ServerOptions {
 	}
 
 	private static String logFile = "serverLog.txt";
+	private static int dataPortNumber = 0;
 
 	public enum Options {
 
@@ -24,54 +25,76 @@ public class ServerOptions {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
-				listFiles("test", server.getOutputCommandSocket());
+				list();
+				//listFiles("test", server.getOutputCommandSocket());
 			}
 		},
 		RETR( "Download a file from server" ) {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
+				sendCodeMessage(200);
 			}
 		},
 		STOR( "Upload a file to the server" ) {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
+				sendCodeMessage(200);
 			}
 		},
 		PWD( "Get the path to the working directory" ) {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
+				sendCodeMessage(200);
 			}
 		},
 		CWD( "Change working directory" ) {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
+				sendCodeMessage(200);
 			}
 		},
 		MKD( "Create directory" ) {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
+				sendCodeMessage(200);
 			}
 		},
-		DELE( "Remove directory" ) {
+		RMD( "Remove directory" ) {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
+				sendCodeMessage(200);
 			}
 		},
-		RNFR( "Delete a file" ) {
+		DELE( "Delete a file" ) {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
+				sendCodeMessage(200);
 			}
 		},
-		PORT( "Port to establish data connection" ) {
+		RNFR( "Rename a file" ) {
 			@Override
 			public void doWork() {
+				System.out.println(this.name());
+				sendCodeMessage(200);
+			}
+		},
+		PURT( "Port to establish data connection" ) {
+			@Override
+			public void doWork() {
+
+				if(server.setDataPort(dataPortNumber)){
+					sendCodeMessage(200);
+				}else{
+					sendCodeMessage(503);
+				}
+
 				System.out.println(this.name());
 			}
 		},
@@ -79,6 +102,14 @@ public class ServerOptions {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
+				ServerOptions.sendCodeMessage(221);
+			}
+		},
+		CLDT( "Close data connection" ) {
+			@Override
+			public void doWork() {
+				System.out.println(this.name());
+				server.closeDataSocket();
 			}
 		};
 
@@ -209,6 +240,39 @@ public class ServerOptions {
 		return "directoy";
 	}
 
+	public static void list(){
+
+		//Try to get file
+		//if file is busy at the moment
+			//send client code 450 via command socket
+		//if file cant be found or server doesn't have access
+			//send client code 550 via command socket
+		//else everything is fine
+			//open data socket and send client code 150 via command socket
+			server.openDataSocket();
+			sendCodeMessage(150);
+
+			try {
+
+				server.dataSocket = server.serverDataSocket.accept();
+				System.out.println("Accepted data connection");
+
+			}catch(IOException e){
+				//send error 425
+				e.printStackTrace();
+			}
+
+			server.createDataWriters(true);
+
+			//if any problem
+				//send 451
+			//else
+				//send file via data socket
+				server.getOutputCharacterDataSocket().println("LIST OF FILES");
+				//send code 226
+				sendCodeMessage(226);
+	}
+
 	public static void listFiles(String listPath, PrintWriter output) {
 		//First, Check that client is listening the port in character mode
 		//Second, Check if they send directory if not, we assume is current folder
@@ -225,14 +289,13 @@ public class ServerOptions {
 		}
 
 		sendCodeMessage(150);
-		sendCodeMessage(226);
-		sendCodeMessage(425);
-		sendCodeMessage(451);
+			sendCodeMessage(226);
+			sendCodeMessage(425);
+			sendCodeMessage(451);
 		sendCodeMessage(450);
 		sendCodeMessage(550);
 
 	}
-
 
 	public static void registerAction(String user, String command) {
 
@@ -267,7 +330,23 @@ public class ServerOptions {
 		parts = clientCommand.split(" |\\\\");
 		option = parts[0];
 
+		if(option.compareTo("PURT") == 0){
+
+			setDataPort(parts[1]);
+		}
+
 		return option;
 	}
 
+	public static void setDataPort(String portMessage){
+
+		//Split the numbers in the portMessage, 0-3 (IP) & 4-5 (PORT)
+		String[] splitString = portMessage.split(",");
+
+		int high = Integer.parseInt(splitString[4]);
+		int low = Integer.parseInt(splitString[5]);
+
+		int port = high * 256 + low;
+		dataPortNumber = port;
+	}
 }
