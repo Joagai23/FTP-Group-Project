@@ -1,7 +1,9 @@
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 
 public class ClientOptions {
+
+    private static final String MAIN_PATH = "C:\\Users\\Jorge\\Documents\\Universidad\\4\\RedesII\\Proyectos\\Client";
 
     public enum Options {
 
@@ -171,7 +173,6 @@ public class ClientOptions {
         return command;
     }
     
-    
     /**
      * Checks if the option needs a path to complete the command
      * 
@@ -195,8 +196,10 @@ public class ClientOptions {
 
         if(option.compareTo("LIST") == 0){
             return  1;
-        }else if(option.compareTo("RETR") == 0 || option.compareTo("STOR") == 0){
+        }else if(option.compareTo("RETR") == 0){
             return 2;
+        }else if(option.compareTo("STOR") == 0){
+            return 3;
         }
 
         return 0;
@@ -231,7 +234,11 @@ public class ClientOptions {
             // Read data from the server
             String response = client.getInputConnectionSocket().readLine();
 
-            if(!response.contains("150")){ // Doesn't need to open data connection
+            if(response.contains("350")){
+                renameFile(client);
+                return client.getInputConnectionSocket().readLine();
+            }
+            else if(!response.contains("150")){ // Doesn't need to open data connection
                 return response;
             }
 
@@ -239,16 +246,9 @@ public class ClientOptions {
             client.openDataSocket();
             client.createDataReader(requiresDataConnection);
 
-            // Wait for next command and close connection
-            /*do{
+            readData(client, requiresDataConnection, path);
 
-                System.out.println("C: " + response);
-                System.out.println("D: " + data);
-            }while(!response.contains("226") || !response.contains("451") || !response.contains("425") || !response.contains("426"));*/
-
-            String data = client.readData(requiresDataConnection);
             response = client.getInputConnectionSocket().readLine();
-            System.out.println("D: " + data);
 
             client.closeDataSocket();
             client.getOutputConnectionSocket().println("CLDT");
@@ -259,5 +259,133 @@ public class ClientOptions {
         }
 
         return "QUIT";
+    }
+
+    private static void readData(Client client, int typeOfData, String fileName){
+
+        if(typeOfData == 1){
+
+            String data = client.readData(typeOfData);
+            System.out.println("D: " + data);
+        }else if (typeOfData == 2){
+           download(fileName, client);
+        }else{
+            upload(client);
+        }
+    }
+
+    /******************************************************************************************************/
+
+    private static void download(String fileName, Client client){
+        try {
+            fileName = getFileName(fileName);
+            File file = new File( MAIN_PATH + "/" + fileName);
+            file.createNewFile();
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+
+            byte[] array = new byte[1000];
+            int n_bytes;
+
+            System.out.println("Downloading " + fileName + "...");
+
+            while((n_bytes = client.getInputByteDataSocket().read(array)) != -1){
+                bufferedOutputStream.write(array, 0, n_bytes);
+            }
+
+            bufferedOutputStream.close();
+            System.out.println("File "  + fileName + " downloaded successfully");
+
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void upload(Client client){
+        String fileName = listFiles();
+
+        // Send name to the server
+        try {
+            client.getOutputConnectionSocket().println(fileName);
+
+            int bufferSize = 1000;
+            byte[] array = new byte[bufferSize];
+            int n_bytes;
+
+            FileInputStream fileInputStream = new FileInputStream(MAIN_PATH + "/" + fileName);
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+
+            while((n_bytes = bufferedInputStream.read(array, 0, bufferSize)) != -1){
+                client.getOutputByteDataSocket().write(array, 0, n_bytes);
+            }
+
+            bufferedInputStream.close();
+            client.closeDataSocket();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String getFileName(String file) {
+        file = file.replace("\\", "-");
+        file = file.replace("/", "-");
+        return file;
+    }
+
+    private static String listFiles(){
+        File folder = new File(MAIN_PATH);
+        ArrayList<String> files = new ArrayList<>();
+        int index = 0;
+
+        if (folder.listFiles() != null) {
+            for (final File fileEntry : folder.listFiles())
+            {
+                if(fileEntry.isFile()){
+                    files.add(fileEntry.getName());
+                    System.out.println(index + ". " + fileEntry.getName());
+                    index++;
+                }
+            }
+        }
+
+        if(!files.isEmpty()){
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            int option = -1;
+            do{
+                System.out.println("Choose file to upload: ");
+                try {
+                    option = Integer.parseInt(reader.readLine());
+                }catch (NumberFormatException e) {
+                    System.out.print("Please, choose a number.");
+                }catch (IOException e) {
+                    System.out.print("Try again.");
+                }
+            }while(option < 0 || option >= index);
+
+            System.out.println("Uploading " + files.get(option));
+            return files.get(option);
+        }
+
+        return "NoFiles";
+    }
+
+    private static void renameFile(Client client){
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String fileName = "";
+        boolean notCorrect;
+        do{
+            System.out.println("Rename file: ");
+            notCorrect = true;
+            try {
+                 fileName = reader.readLine();
+                 notCorrect = false;
+            }catch (IOException e) {
+                System.out.print("Try again.");
+            }
+        }while(fileName.isBlank() || notCorrect);
+
+        String command = "RNTO " + fileName + "\\r\\n";
+        client.getOutputConnectionSocket().println(command);
     }
 }
