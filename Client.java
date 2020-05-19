@@ -15,6 +15,7 @@ public class Client {
     private PrintWriter outputConnectionSocket;
     private BufferedReader inputCharDataSocket;
     private DataInputStream inputByteDataSocket;
+    private DataOutputStream outputByteDataSocket;
 
     /***************************************************************/
 
@@ -22,7 +23,6 @@ public class Client {
     {
         setPortFromConfigFile();
         establishConnection();
-        createCommandWritersReaders();
     }
 
     /***************************************************************/
@@ -41,6 +41,12 @@ public class Client {
     {
         return outputConnectionSocket;
     }
+
+    public DataInputStream getInputByteDataSocket(){
+        return inputByteDataSocket;
+    }
+
+    public DataOutputStream getOutputByteDataSocket() { return  outputByteDataSocket; }
 
     /***************************************************************/
 
@@ -63,6 +69,7 @@ public class Client {
                 inputCharDataSocket = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
             }else{ // byte mode
                 inputByteDataSocket = new DataInputStream(dataSocket.getInputStream());
+                outputByteDataSocket = new DataOutputStream(dataSocket.getOutputStream());
             }
 
         } catch (IOException e) {
@@ -92,6 +99,7 @@ public class Client {
 
         try {
             commandSocket = new Socket(IP, commandPort);
+            createCommandWritersReaders();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -102,6 +110,7 @@ public class Client {
 
         try {
             dataSocket = new Socket(IP, dataPort);
+            //dataSocket.setSoTimeout(2000);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -112,7 +121,9 @@ public class Client {
     public void closeDataSocket(){
 
         try {
-            dataSocket.close();
+            if(!dataSocket.isClosed()){
+                dataSocket.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -161,8 +172,6 @@ public class Client {
         try {
             if (mode == 1) {
                 inputFromServer = inputCharDataSocket.readLine();
-            } else {
-                inputFromServer = inputByteDataSocket.readLine();
             }
         }catch(IOException e){
             e.printStackTrace();
