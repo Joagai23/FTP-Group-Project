@@ -33,6 +33,9 @@ public class FTP_Client {
                 if (ClientOptions.needPath(option)) {
                     path = ClientOptions.getPath(inputKeyboard);
                 }
+                else{
+                    path = "";
+                }
 
                 result = ClientOptions.FTPClient(client, option, path);
                 System.out.println("Server says: " + result);
