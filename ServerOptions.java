@@ -1,9 +1,4 @@
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -18,71 +13,63 @@ public class ServerOptions {
 
 	private static String logFile = "serverLog.txt";
 	private static int dataPortNumber = 0;
+	private static String directoryPath = "";
+	private static final String MAIN_PATH = "C:\\Users\\Jorge\\Documents\\Universidad\\4\\RedesII\\Proyectos\\Server";
 
 	public enum Options {
 
 		LIST( "List all files on a directory" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
 				list();
-				//listFiles("test", server.getOutputCommandSocket());
 			}
 		},
 		RETR( "Download a file from server" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
-				sendCodeMessage(200);
+				download();
 			}
 		},
 		STOR( "Upload a file to the server" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
-				sendCodeMessage(200);
+				upload();
 			}
 		},
 		PWD( "Get the path to the working directory" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
-				sendCodeMessage(200);
+				getPath();
 			}
 		},
 		CWD( "Change working directory" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
-				sendCodeMessage(200);
+				changePath();
 			}
 		},
 		MKD( "Create directory" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
-				sendCodeMessage(200);
+				createDirectory();
 			}
 		},
 		RMD( "Remove directory" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
-				sendCodeMessage(200);
+				removeDirectory();
 			}
 		},
 		DELE( "Delete a file" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
-				sendCodeMessage(200);
+				deleteFile();
 			}
 		},
-		RNFR( "Rename a file" ) {
+		RNFR( "Rename a file checking" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
-				sendCodeMessage(200);
+				renameDirectory();
 			}
 		},
 		PURT( "Port to establish data connection" ) {
@@ -109,7 +96,7 @@ public class ServerOptions {
 			@Override
 			public void doWork() {
 				System.out.println(this.name());
-				server.closeDataSocket();
+				server.closeServerDataSocket();
 			}
 		};
 
@@ -229,26 +216,69 @@ public class ServerOptions {
 		}
 	}
 
-	public static String getPathCurrentDirectory() {
+	/******************************************************************************************************************************************/
 
-		Path currentRelativePath = Paths.get("");
-		String path = currentRelativePath.toAbsolutePath().toString();
-		return path;
+	private static void list(){
+
+		File folder = new File(MAIN_PATH + directoryPath);
+		System.out.println("Directory: " + MAIN_PATH + directoryPath);
+		if(!folder.exists())
+		{
+			sendCodeMessage(550);
+		}
+		else
+		{
+			String fileNames = "";
+
+			if (folder.listFiles() != null) {
+				for (final File fileEntry : folder.listFiles())
+				{
+					fileNames += " " + fileEntry.getName() + " ";
+				}
+			}
+
+			if (fileNames.equals(""))
+			{
+				sendCodeMessage(450);
+			}
+			else
+			{
+				server.openDataSocket();
+				sendCodeMessage(150);
+
+				try {
+
+					server.dataSocket = server.serverDataSocket.accept();
+					System.out.println("Accepted data connection");
+
+				}catch(IOException e){
+					sendCodeMessage(425);
+				}
+
+				server.createDataWriters(true);
+
+				server.getOutputCharacterDataSocket().println(fileNames);
+				server.closeDataSocket();
+
+				sendCodeMessage(226);
+			}
+		}
 	}
 
-	public String getDirectoryName() {
-		return "directoy";
-	}
+	private static void download(){
 
-	public static void list(){
+		FileInputStream fileInputStream;
+		BufferedInputStream bufferedInputStream;
 
-		//Try to get file
-		//if file is busy at the moment
-			//send client code 450 via command socket
-		//if file cant be found or server doesn't have access
-			//send client code 550 via command socket
-		//else everything is fine
-			//open data socket and send client code 150 via command socket
+		int bufferSize = 1000;
+		byte[] array = new byte[bufferSize];
+		int n_bytes;
+
+		try{
+			System.out.println("Directory: " + MAIN_PATH + directoryPath);
+			fileInputStream = new FileInputStream(MAIN_PATH + directoryPath);
+			bufferedInputStream = new BufferedInputStream(fileInputStream);
+
 			server.openDataSocket();
 			sendCodeMessage(150);
 
@@ -258,44 +288,183 @@ public class ServerOptions {
 				System.out.println("Accepted data connection");
 
 			}catch(IOException e){
-				//send error 425
+				sendCodeMessage(425);
+			}
+
+			server.createDataWriters(false);
+
+			while((n_bytes = bufferedInputStream.read(array, 0, bufferSize)) != -1){
+				server.getOutputByteDataSocket().write(array, 0, n_bytes);
+			}
+
+			bufferedInputStream.close();
+			server.closeDataSocket();
+			System.out.println("Download complete!");
+
+			sendCodeMessage(226);
+
+		}catch (FileNotFoundException e){
+			sendCodeMessage(550);
+		}catch (IOException e){
+			sendCodeMessage(450);
+		}
+	}
+
+	private static void upload(){
+
+		File folder = new File(MAIN_PATH + directoryPath);
+		System.out.println("Directory: " + MAIN_PATH + directoryPath);
+		if(!folder.exists()) {
+			sendCodeMessage(450);
+		}else {
+			server.openDataSocket();
+			sendCodeMessage(150);
+
+			try {
+				server.dataSocket = server.serverDataSocket.accept();
+				System.out.println("Accepted data connection");
+
+			} catch (IOException e) {
+				sendCodeMessage(425);
 				e.printStackTrace();
 			}
 
-			server.createDataWriters(true);
+			server.createDataWriters(false);
 
-			//if any problem
-				//send 451
-			//else
-				//send file via data socket
-				server.getOutputCharacterDataSocket().println("LIST OF FILES");
-				//send code 226
-				sendCodeMessage(226);
-	}
+			try {
+				String fileName = server.getInputCommandSocket().readLine();
 
-	public static void listFiles(String listPath, PrintWriter output) {
-		//First, Check that client is listening the port in character mode
-		//Second, Check if they send directory if not, we assume is current folder
-		//Third, Send messages and list the files
-		String path;
+				System.out.println("File name: " + MAIN_PATH + directoryPath + "/" + fileName);
 
+				File file = new File(MAIN_PATH + directoryPath + "/" + fileName);
+				FileOutputStream fileOutputStream = new FileOutputStream(file);
+				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
-		/***** SECOND STEP *****/
-		if( listPath.equals("") || listPath.isEmpty() || listPath == null ) {
-			path = getPathCurrentDirectory();
-		}
-		else {
-			path = listPath;
-		}
+				byte[] array = new byte[1000];
+				int n_bytes;
 
-		sendCodeMessage(150);
+				while((n_bytes = server.getInputByteDataSocket().read(array)) != -1){
+					bufferedOutputStream.write(array, 0, n_bytes);
+				}
+
+				bufferedOutputStream.close();
+
+			} catch (FileNotFoundException e) {
+				sendCodeMessage(553);
+			} catch (IOException e) {
+				e.printStackTrace();
+				sendCodeMessage(451);
+			}
+
+			server.closeDataSocket();
+
 			sendCodeMessage(226);
-			sendCodeMessage(425);
-			sendCodeMessage(451);
-		sendCodeMessage(450);
-		sendCodeMessage(550);
-
+		}
 	}
+
+	private static void getPath(){
+
+		String path = " Server" + directoryPath;
+
+		if(directoryPath.isEmpty()){
+			path += "\\";
+		}
+
+		server.getOutputCommandSocket().println(257 + path);
+	}
+
+	private static void changePath(){
+
+		File folder = new File(MAIN_PATH + directoryPath);
+		System.out.println("Directory: " + MAIN_PATH + directoryPath);
+		if(!folder.exists())
+		{
+			directoryPath = "";
+			sendCodeMessage(550);
+		}else{
+			sendCodeMessage(250);
+		}
+	}
+
+	private static void createDirectory(){
+
+		File folder = new File(MAIN_PATH + directoryPath);
+		File parent = new File(folder.getParent());
+
+		if(!parent.exists() || folder.exists()){
+			directoryPath = "";
+			sendCodeMessage(550);
+		} else{
+			folder.mkdir();
+			server.getOutputCommandSocket().println(257 + " " + folder.toString());
+		}
+	}
+
+	private static void removeDirectory(){
+
+		File path = new File(MAIN_PATH + directoryPath);
+		File currentDirectory = new File(directoryPath);
+
+		if(!path.exists() || !path.isDirectory() || directoryPath.isEmpty() || directoryPath.contains(".")){
+			directoryPath = "";
+			sendCodeMessage(550);
+		}else{
+			directoryPath = currentDirectory.getParent();
+			removeDirectoryFile(path);
+		}
+	}
+
+	private static void deleteFile(){
+
+		File path = new File(MAIN_PATH + directoryPath);
+		File currentDirectory = new File(directoryPath);
+
+		if(!path.exists() || !path.isFile()){
+			directoryPath = "";
+			sendCodeMessage(550);
+		}else{
+			directoryPath = currentDirectory.getParent();
+			removeDirectoryFile(path);
+		}
+	}
+
+	private static void renameDirectory(){
+
+		File path = new File(MAIN_PATH + directoryPath);
+		File currentDirectory = new File(directoryPath);
+
+		if(!path.exists()|| directoryPath.isEmpty() || directoryPath.equals("/.") || directoryPath.equals("\\.")){
+			directoryPath = "";
+			sendCodeMessage(550);
+		}else{
+
+			sendCodeMessage(350);
+			try {
+				String[] directorySplit = directoryPath.split("\\.");
+				String extension = "";
+				if(directorySplit.length > 1){
+					extension = directorySplit[directorySplit.length - 1];
+				}
+
+				String fileName = server.getInputCommandSocket().readLine();
+				String[] parts = fileName.split(" |\\\\");
+				fileName = parts[1] + "." + extension;
+
+				String newPath = path.getAbsolutePath();
+				newPath = newPath.replace(path.getName(),fileName);
+				File renamedFile = new File(newPath);
+
+				path.renameTo(renamedFile);
+
+				sendCodeMessage(250);
+				directoryPath = currentDirectory.getParent();
+			} catch (IOException e) {
+				sendCodeMessage(553);
+			}
+		}
+	}
+
+	/******************************************************************************************************************************************/
 
 	public static void registerAction(String user, String command) {
 
@@ -330,6 +499,13 @@ public class ServerOptions {
 		parts = clientCommand.split(" |\\\\");
 		option = parts[0];
 
+		if(parts.length > 1){
+			if(!parts[0].equals("PURT") && !parts[1].equals("r"))
+			{
+				setDirectory(parts, 1);
+			}
+		}
+
 		if(option.compareTo("PURT") == 0){
 
 			setDataPort(parts[1]);
@@ -348,5 +524,37 @@ public class ServerOptions {
 
 		int port = high * 256 + low;
 		dataPortNumber = port;
+	}
+
+	private static void setDirectory(String[] partArray, int startingIndex){
+
+		directoryPath = "\\";
+
+		for(int i = startingIndex; i < partArray.length; ++i){
+			if(partArray[i].equals("r")){
+				i = partArray.length;
+			}else{
+				if(i != startingIndex && !partArray[i].isEmpty()){
+					directoryPath += "/";
+				}
+				directoryPath += partArray[i];
+			}
+		}
+	}
+
+	private static void  removeDirectoryFile(File directory)  {
+		File[] files = directory.listFiles();
+		if(files!=null)
+		{
+			for(File f: files) {
+				if(f.isDirectory()) {
+					removeDirectoryFile(f);
+				} else {
+					f.delete();
+				}
+			}
+		}
+		directory.delete();
+		sendCodeMessage(250);
 	}
 }
