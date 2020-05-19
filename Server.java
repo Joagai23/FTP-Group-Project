@@ -14,6 +14,7 @@ public class Server {
     private PrintWriter outputCommandSocket;
     private PrintWriter outputCharacterDataSocket;
     private DataOutputStream outputByteDataSocket;
+    private DataInputStream inputByteDataSocket;
 
     /***************************************************************/
 
@@ -60,6 +61,8 @@ public class Server {
 
     public DataOutputStream getOutputByteDataSocket() { return outputByteDataSocket;}
 
+    public DataInputStream getInputByteDataSocket() { return inputByteDataSocket; }
+
     /***************************************************************/
 
     public void createCommandWritersReaders()
@@ -69,6 +72,21 @@ public class Server {
             inputCommandSocket = new BufferedReader(new InputStreamReader(commandSocket.getInputStream()));
             outputCommandSocket = new PrintWriter(commandSocket.getOutputStream(), true);
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void createDataWriters(boolean characterMode){
+
+        try{
+            if(characterMode){
+                outputCharacterDataSocket = new PrintWriter(dataSocket.getOutputStream(), true);
+            }else{
+                outputByteDataSocket = new DataOutputStream(dataSocket.getOutputStream());
+                inputByteDataSocket = new DataInputStream(dataSocket.getInputStream());
+            }
+        }catch (IOException e)
+        {
             e.printStackTrace();
         }
     }
@@ -85,10 +103,9 @@ public class Server {
         }
     }
 
-    public void closeDataSocket()
+    public void closeServerDataSocket()
     {
         try {
-            dataSocket.close();
             serverDataSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -96,16 +113,10 @@ public class Server {
         System.out.println("Data connection closed");
     }
 
-    public void createDataWriters(boolean characterMode){
-
-        try{
-            if(characterMode){
-                outputCharacterDataSocket = new PrintWriter(dataSocket.getOutputStream(), true);
-            }else{
-                outputByteDataSocket = new DataOutputStream(dataSocket.getOutputStream());
-            }
-        }catch (IOException e)
-        {
+    public void closeDataSocket(){
+        try {
+            dataSocket.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
