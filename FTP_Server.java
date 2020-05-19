@@ -6,7 +6,7 @@ public class FTP_Server {
 
         Server server = new Server();
         ServerOptions serverOptions = new ServerOptions(server);
-        
+
         boolean connectionControl = false;
 
         String data = "";
