@@ -22,10 +22,26 @@ public class FTP_Client {
 				connection = false;
 			}
 
+			//User Control
+            inputKeyboard = new BufferedReader(new InputStreamReader(System.in));
+			System.out.print("USER: ");
+			String user = inputKeyboard.readLine();
+            ClientOptions.sendUserName(client, user);
+            if(client.getInputConnectionSocket().readLine().contains("331")){
+                System.out.print("PASSWORD: ");
+                String pass = inputKeyboard.readLine();
+                ClientOptions.sendUserPassword(client, pass);
+                if(client.getInputConnectionSocket().readLine().contains("530")){
+                    connection = false;
+                }
+            }else{
+                connection = false;
+            }
+
 			while(connection)
             {
                 // Get text from the keyboard
-                inputKeyboard = new BufferedReader(new InputStreamReader(System.in));
+                //inputKeyboard = new BufferedReader(new InputStreamReader(System.in));
 
                 ClientOptions.printMenu();
                 option = ClientOptions.getOption(inputKeyboard);
@@ -51,6 +67,7 @@ public class FTP_Client {
 			System.out.println("Client connection closed!");
         }  catch(IOException e) {
             System.out.println("Error: " + e);
+            //TODO Close all socket elements
         }
     } // main
 } // class CharacterClient
