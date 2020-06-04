@@ -15,6 +15,9 @@ public class ServerOptions {
 	private static int dataPortNumber = 0;
 	private static String directoryPath = "";
 	private static final String MAIN_PATH = "C:\\Users\\Jorge\\Documents\\Universidad\\4\\RedesII\\Proyectos\\Server";
+	private static String userName = "";
+	private static String userPassword = "";
+	private static boolean isUserLoggedIn = false;
 
 	public enum Options {
 
@@ -81,22 +84,31 @@ public class ServerOptions {
 				}else{
 					sendCodeMessage(503);
 				}
-
-				System.out.println(this.name());
 			}
 		},
 		QUIT( "Exit" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
 				ServerOptions.sendCodeMessage(221);
+				isUserLoggedIn = false;
 			}
 		},
 		CLDT( "Close data connection" ) {
 			@Override
 			public void doWork() {
-				System.out.println(this.name());
 				server.closeServerDataSocket();
+			}
+		},
+		USER( "Authentication user" ) {
+			@Override
+			public void doWork() {
+				ServerOptions.sendCodeMessage(331);
+			}
+		},
+		PASS( "Authentication password" ) {
+			@Override
+			public void doWork() {
+				userControl(userName, userPassword);
 			}
 		};
 
@@ -507,8 +519,13 @@ public class ServerOptions {
 		}
 
 		if(option.compareTo("PURT") == 0){
-
 			setDataPort(parts[1]);
+		}else if(option.compareTo("USER") == 0){
+			userName = parts[1];
+			System.out.println("User name: " + userName);
+		}else if(option.compareTo("PASS") == 0){
+			userPassword = parts[1];
+			System.out.println("User password: " + userPassword);
 		}
 
 		return option;
@@ -556,5 +573,53 @@ public class ServerOptions {
 		}
 		directory.delete();
 		sendCodeMessage(250);
+	}
+
+	public static void userControl(String user,String password)
+	{
+		boolean dataLoginFound = false;
+
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader("userControl.txt"));
+			String line = reader.readLine();
+
+			while (line != null && dataLoginFound == false) {
+
+				//Inside the .txt we have the user and the password in the same line, divided by two scrpts(--)
+				//For that,we use split() for divides into two parts the line
+				//In this way we have an array with two elements,the first will be the user and the second one will be the password
+
+				String[] datasLogin = line.split("--");
+				//When we have the datas divided in two,we are going to checked them
+
+				if (datasLogin[0].equals(user) && datasLogin[1].equals(password))
+					dataLoginFound = true;//Al pasar a true, el bucle while finalizarÃ¡
+				else
+					line = reader.readLine();
+
+			}
+		}catch(FileNotFoundException fNFE){
+			ServerOptions.sendCodeMessage(530);
+		}
+		catch(IOException iOE){
+			ServerOptions.sendCodeMessage(530);
+		}
+
+		if(dataLoginFound){
+			System.out.println("Welcome "+ user);
+			isUserLoggedIn = true;
+			ServerOptions.sendCodeMessage(230);
+		}else{
+			System.out.println("You are not registered "+ user);
+			ServerOptions.sendCodeMessage(530);
+		}
+	}
+
+	public static boolean getLogIn(){
+		return isUserLoggedIn;
+	}
+
+	public static String getUserName(){
+		return userName;
 	}
 }
