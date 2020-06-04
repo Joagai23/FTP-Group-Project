@@ -388,4 +388,14 @@ public class ClientOptions {
         String command = "RNTO " + fileName + "\\r\\n";
         client.getOutputConnectionSocket().println(command);
     }
+
+    public static void sendUserName(Client client, String userName){
+        String command = "USER " + userName + "\\r\\n";
+        client.getOutputConnectionSocket().println(command);
+    }
+
+    public static void sendUserPassword(Client client, String userPass){
+        String command = "PASS " + userPass + "\\r\\n";
+        client.getOutputConnectionSocket().println(command);
+    }
 }
