@@ -31,17 +31,18 @@ public class FTP_Server {
                     data =  server.getInputCommandSocket().readLine();
                     System.out.println("Server receives: " + data);
 
-                    option = ServerOptions.getOption(data);
+                    option = serverOptions.getOption(data);
 
                     ServerOptions.readOption(option);
 
-                    ServerOptions.registerAction("test", data);
+                    ServerOptions.registerAction(serverOptions.getUserName(), data);
 
                     if(option.compareTo("PURT") != 0) {
 
-                        if(option.compareTo("QUIT") == 0)
-                        {
+                        if(option.compareTo("QUIT") == 0){
                             connectionControl = false;
+                        }else if(option.compareTo("PASS") == 0){
+                            connectionControl = serverOptions.getLogIn();
                         }
                     }
                 }
