@@ -512,7 +512,7 @@ public class ServerOptions {
 		option = parts[0];
 
 		if(parts.length > 1){
-			if(!parts[0].equals("PURT") && !parts[1].equals("r"))
+			if(!parts[0].equals("PURT") && !parts[1].equals("r") && !parts[0].equals("USER") && !parts[0].equals("PASS"))
 			{
 				setDirectory(parts, 1);
 			}
