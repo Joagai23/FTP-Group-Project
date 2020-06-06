@@ -28,7 +28,7 @@ public class FTP_Server {
                 while(connectionControl)
                 {
                     // Read the data sent by the client
-                    data =  server.getInputCommandSocket().readLine();
+                    data = server.getInputCommandSocket().readLine();
                     System.out.println("Server receives: " + data);
 
                     option = serverOptions.getOption(data);
@@ -52,7 +52,7 @@ public class FTP_Server {
 
             } catch(IOException e)
             {
-                System.out.println("Error: " + e);
+                System.out.println("Error: Connection Reset!");
             }
         }
         // Close the server socket
