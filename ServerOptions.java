@@ -313,7 +313,7 @@ public class ServerOptions {
 			bufferedInputStream.close();
 			server.closeDataSocket();
 			System.out.println("Download complete!");
-			directoryPath = currentDirectory.getParent();
+			//directoryPath = currentDirectory.getParent();
 			sendCodeMessage(226);
 
 		}catch (FileNotFoundException e){
@@ -422,7 +422,7 @@ public class ServerOptions {
 		File path = new File(MAIN_PATH + directoryPath);
 		File currentDirectory = new File(directoryPath);
 
-		if(!path.exists() || !path.isDirectory() || directoryPath.isEmpty() || directoryPath.contains(".")){
+		if(!path.exists() || !path.isDirectory() || directoryPath.isEmpty() || directoryPath.contains(".") || directoryPath.isBlank()){
 			directoryPath = "";
 			sendCodeMessage(550);
 		}else{
@@ -443,6 +443,22 @@ public class ServerOptions {
 			directoryPath = currentDirectory.getParent();
 			removeDirectoryFile(path);
 		}
+	}
+
+	private static void  removeDirectoryFile(File directory)  {
+		File[] files = directory.listFiles();
+		if(files!=null)
+		{
+			for(File f: files) {
+				if(f.isDirectory()) {
+					removeDirectoryFile(f);
+				} else {
+					f.delete();
+				}
+			}
+		}
+		directory.delete();
+		sendCodeMessage(250);
 	}
 
 	private static void renameDirectory(){
@@ -474,7 +490,7 @@ public class ServerOptions {
 				path.renameTo(renamedFile);
 
 				sendCodeMessage(250);
-				directoryPath = currentDirectory.getParent();
+				directoryPath = "";
 			} catch (IOException e) {
 				sendCodeMessage(553);
 			}
@@ -566,22 +582,6 @@ public class ServerOptions {
 				directoryPath += partArray[i];
 			}
 		}
-	}
-
-	private static void  removeDirectoryFile(File directory)  {
-		File[] files = directory.listFiles();
-		if(files!=null)
-		{
-			for(File f: files) {
-				if(f.isDirectory()) {
-					removeDirectoryFile(f);
-				} else {
-					f.delete();
-				}
-			}
-		}
-		directory.delete();
-		sendCodeMessage(250);
 	}
 
 	public static void userControl(String user,String password)
