@@ -422,12 +422,13 @@ public class ServerOptions {
 		File path = new File(MAIN_PATH + directoryPath);
 		File currentDirectory = new File(directoryPath);
 
-		if(!path.exists() || !path.isDirectory() || directoryPath.isEmpty() || directoryPath.contains(".") || directoryPath.isBlank()){
+		if(!path.exists() || !path.isDirectory() || directoryPath.isEmpty() || directoryPath.contains(".") || directoryPath.isBlank() || directoryPath.equals("\\")){
 			directoryPath = "";
 			sendCodeMessage(550);
 		}else{
 			directoryPath = currentDirectory.getParent();
 			removeDirectoryFile(path);
+			sendCodeMessage(250);
 		}
 	}
 
@@ -442,6 +443,7 @@ public class ServerOptions {
 		}else{
 			directoryPath = currentDirectory.getParent();
 			removeDirectoryFile(path);
+			sendCodeMessage(250);
 		}
 	}
 
@@ -458,7 +460,6 @@ public class ServerOptions {
 			}
 		}
 		directory.delete();
-		sendCodeMessage(250);
 	}
 
 	private static void renameDirectory(){
