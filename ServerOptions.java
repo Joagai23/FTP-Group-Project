@@ -278,6 +278,7 @@ public class ServerOptions {
 	}
 
 	private static void download(){
+		File currentDirectory = new File(directoryPath);
 
 		FileInputStream fileInputStream;
 		BufferedInputStream bufferedInputStream;
@@ -312,7 +313,7 @@ public class ServerOptions {
 			bufferedInputStream.close();
 			server.closeDataSocket();
 			System.out.println("Download complete!");
-
+			directoryPath = currentDirectory.getParent();
 			sendCodeMessage(226);
 
 		}catch (FileNotFoundException e){
@@ -369,20 +370,24 @@ public class ServerOptions {
 			}
 
 			server.closeDataSocket();
-
 			sendCodeMessage(226);
 		}
 	}
 
 	private static void getPath(){
 
-		String path = " Server" + directoryPath;
+		try{
+			String path = " Server" + directoryPath;
 
-		if(directoryPath.isEmpty()){
-			path += "\\";
+			if(directoryPath.isEmpty()){
+				path += "\\";
+			}
+
+			server.getOutputCommandSocket().println(257 + path);
+		}catch (NullPointerException e){
+			System.out.println(e.toString());
 		}
 
-		server.getOutputCommandSocket().println(257 + path);
 	}
 
 	private static void changePath(){
@@ -508,26 +513,30 @@ public class ServerOptions {
 		String option = "";
 		String[] parts;
 
-		parts = clientCommand.split(" |\\\\");
-		option = parts[0];
+		try {
+			parts = clientCommand.split(" |\\\\");
+			option = parts[0];
 
-		if(parts.length > 1){
-			if(!parts[0].equals("PURT") && !parts[1].equals("r") && !parts[0].equals("USER") && !parts[0].equals("PASS"))
-			{
-				setDirectory(parts, 1);
+			if (parts.length > 1) {
+				if (!parts[0].equals("PURT") && !parts[1].equals("r") && !parts[0].equals("USER") && !parts[0].equals("PASS")) {
+					setDirectory(parts, 1);
+				}
 			}
-		}
 
-		if(option.compareTo("PURT") == 0){
-			setDataPort(parts[1]);
-		}else if(option.compareTo("USER") == 0){
-			userName = parts[1];
-			System.out.println("User name: " + userName);
-		}else if(option.compareTo("PASS") == 0){
-			userPassword = parts[1];
-			System.out.println("User password: " + userPassword);
-		}
+			if (option.compareTo("PURT") == 0) {
+				setDataPort(parts[1]);
+			} else if (option.compareTo("USER") == 0) {
+				userName = parts[1];
+				System.out.println("User name: " + userName);
+			} else if (option.compareTo("PASS") == 0) {
+				userPassword = parts[1];
+				System.out.println("User password: " + userPassword);
+			}
 
+
+		}catch(NullPointerException e){
+			System.out.println(e.toString());
+		}
 		return option;
 	}
 
@@ -590,10 +599,9 @@ public class ServerOptions {
 				//In this way we have an array with two elements,the first will be the user and the second one will be the password
 
 				String[] datasLogin = line.split("--");
-				//When we have the datas divided in two,we are going to checked them
 
 				if (datasLogin[0].equals(user) && datasLogin[1].equals(password))
-					dataLoginFound = true;//Al pasar a true, el bucle while finalizarÃ¡
+					dataLoginFound = true;
 				else
 					line = reader.readLine();
 
