@@ -327,7 +327,7 @@ public class ServerOptions {
 
 		File folder = new File(MAIN_PATH + directoryPath);
 		System.out.println("Directory: " + MAIN_PATH + directoryPath);
-		if(!folder.exists()) {
+		if(!folder.exists() || !folder.isDirectory()) {
 			sendCodeMessage(450);
 		}else {
 			server.openDataSocket();
@@ -350,17 +350,26 @@ public class ServerOptions {
 				System.out.println("File name: " + MAIN_PATH + directoryPath + "/" + fileName);
 
 				File file = new File(MAIN_PATH + directoryPath + "/" + fileName);
-				FileOutputStream fileOutputStream = new FileOutputStream(file);
-				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
-				byte[] array = new byte[1000];
-				int n_bytes;
+				if(!file.exists()){
+					FileOutputStream fileOutputStream = new FileOutputStream(file);
+					BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
-				while((n_bytes = server.getInputByteDataSocket().read(array)) != -1){
-					bufferedOutputStream.write(array, 0, n_bytes);
+					byte[] array = new byte[1000];
+					int n_bytes;
+
+					while((n_bytes = server.getInputByteDataSocket().read(array)) != -1){
+						bufferedOutputStream.write(array, 0, n_bytes);
+					}
+
+					bufferedOutputStream.close();
+					server.closeDataSocket();
+					sendCodeMessage(226);
+				}else{
+					server.closeDataSocket();
+					sendCodeMessage(450);
 				}
 
-				bufferedOutputStream.close();
 
 			} catch (FileNotFoundException e) {
 				sendCodeMessage(553);
@@ -369,8 +378,7 @@ public class ServerOptions {
 				sendCodeMessage(451);
 			}
 
-			server.closeDataSocket();
-			sendCodeMessage(226);
+
 		}
 	}
 
@@ -487,6 +495,12 @@ public class ServerOptions {
 				String newPath = path.getAbsolutePath();
 				newPath = newPath.replace(path.getName(),fileName);
 				File renamedFile = new File(newPath);
+
+				while(renamedFile.exists()){
+					newPath = path.getAbsolutePath();
+					newPath = newPath.replace(path.getName(),"new" + fileName);
+					renamedFile = new File(newPath);
+				}
 
 				path.renameTo(renamedFile);
 
