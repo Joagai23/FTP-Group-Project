@@ -473,6 +473,7 @@ public class ServerOptions {
 	private static void renameDirectory(){
 
 		File path = new File(MAIN_PATH + directoryPath);
+		System.out.println("Renamed path: " + MAIN_PATH + directoryPath);
 		File currentDirectory = new File(directoryPath);
 
 		if(!path.exists()|| directoryPath.isEmpty() || directoryPath.equals("/.") || directoryPath.equals("\\.")){
@@ -493,6 +494,7 @@ public class ServerOptions {
 				fileName = parts[1] + "." + extension;
 
 				String newPath = path.getAbsolutePath();
+				System.out.println("Renamed path: " + newPath);
 				newPath = newPath.replace(path.getName(),fileName);
 				File renamedFile = new File(newPath);
 
@@ -585,18 +587,25 @@ public class ServerOptions {
 
 	private static void setDirectory(String[] partArray, int startingIndex){
 
-		directoryPath = "\\";
+        System.out.println("Before: " + directoryPath);
 
-		for(int i = startingIndex; i < partArray.length; ++i){
-			if(partArray[i].equals("r")){
-				i = partArray.length;
-			}else{
-				if(i != startingIndex && !partArray[i].isEmpty()){
-					directoryPath += "/";
-				}
-				directoryPath += partArray[i];
-			}
-		}
+        if(partArray[startingIndex].equals(".")){
+            directoryPath = "";
+        }else {
+            directoryPath += "\\";
+
+            for (int i = startingIndex; i < partArray.length; ++i) {
+                if (partArray[i].equals("r")) {
+                    i = partArray.length;
+                } else {
+                    if (i != startingIndex && !partArray[i].isEmpty()) {
+                        directoryPath += "/";
+                    }
+                    directoryPath += partArray[i];
+                }
+            }
+        }
+        System.out.println("After: " + directoryPath);
 	}
 
 	public static void userControl(String user,String password)
