@@ -587,8 +587,6 @@ public class ServerOptions {
 
 	private static void setDirectory(String[] partArray, int startingIndex){
 
-        System.out.println("Before: " + directoryPath);
-
         if(partArray[startingIndex].equals(".")){
             directoryPath = "";
         }else {
@@ -605,7 +603,7 @@ public class ServerOptions {
                 }
             }
         }
-        System.out.println("After: " + directoryPath);
+        System.out.println("Updated directory: " + directoryPath);
 	}
 
 	public static void userControl(String user,String password)
