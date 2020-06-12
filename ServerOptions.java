@@ -327,7 +327,7 @@ public class ServerOptions {
 
 		File folder = new File(MAIN_PATH + directoryPath);
 		System.out.println("Directory: " + MAIN_PATH + directoryPath);
-		if(!folder.exists()) {
+		if(!folder.exists() || !folder.isDirectory()) {
 			sendCodeMessage(450);
 		}else {
 			server.openDataSocket();
@@ -350,17 +350,26 @@ public class ServerOptions {
 				System.out.println("File name: " + MAIN_PATH + directoryPath + "/" + fileName);
 
 				File file = new File(MAIN_PATH + directoryPath + "/" + fileName);
-				FileOutputStream fileOutputStream = new FileOutputStream(file);
-				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
-				byte[] array = new byte[1000];
-				int n_bytes;
+				if(!file.exists()){
+					FileOutputStream fileOutputStream = new FileOutputStream(file);
+					BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
-				while((n_bytes = server.getInputByteDataSocket().read(array)) != -1){
-					bufferedOutputStream.write(array, 0, n_bytes);
+					byte[] array = new byte[1000];
+					int n_bytes;
+
+					while((n_bytes = server.getInputByteDataSocket().read(array)) != -1){
+						bufferedOutputStream.write(array, 0, n_bytes);
+					}
+
+					bufferedOutputStream.close();
+					server.closeDataSocket();
+					sendCodeMessage(226);
+				}else{
+					server.closeDataSocket();
+					sendCodeMessage(450);
 				}
 
-				bufferedOutputStream.close();
 
 			} catch (FileNotFoundException e) {
 				sendCodeMessage(553);
@@ -369,8 +378,7 @@ public class ServerOptions {
 				sendCodeMessage(451);
 			}
 
-			server.closeDataSocket();
-			sendCodeMessage(226);
+
 		}
 	}
 
@@ -465,6 +473,7 @@ public class ServerOptions {
 	private static void renameDirectory(){
 
 		File path = new File(MAIN_PATH + directoryPath);
+		System.out.println("Renamed path: " + MAIN_PATH + directoryPath);
 		File currentDirectory = new File(directoryPath);
 
 		if(!path.exists()|| directoryPath.isEmpty() || directoryPath.equals("/.") || directoryPath.equals("\\.")){
@@ -485,8 +494,15 @@ public class ServerOptions {
 				fileName = parts[1] + "." + extension;
 
 				String newPath = path.getAbsolutePath();
+				System.out.println("Renamed path: " + newPath);
 				newPath = newPath.replace(path.getName(),fileName);
 				File renamedFile = new File(newPath);
+
+				while(renamedFile.exists()){
+					newPath = path.getAbsolutePath();
+					newPath = newPath.replace(path.getName(),"new" + fileName);
+					renamedFile = new File(newPath);
+				}
 
 				path.renameTo(renamedFile);
 
@@ -571,18 +587,23 @@ public class ServerOptions {
 
 	private static void setDirectory(String[] partArray, int startingIndex){
 
-		directoryPath = "\\";
+        if(partArray[startingIndex].equals(".")){
+            directoryPath = "";
+        }else {
+            directoryPath += "\\";
 
-		for(int i = startingIndex; i < partArray.length; ++i){
-			if(partArray[i].equals("r")){
-				i = partArray.length;
-			}else{
-				if(i != startingIndex && !partArray[i].isEmpty()){
-					directoryPath += "/";
-				}
-				directoryPath += partArray[i];
-			}
-		}
+            for (int i = startingIndex; i < partArray.length; ++i) {
+                if (partArray[i].equals("r")) {
+                    i = partArray.length;
+                } else {
+                    if (i != startingIndex && !partArray[i].isEmpty()) {
+                        directoryPath += "/";
+                    }
+                    directoryPath += partArray[i];
+                }
+            }
+        }
+        System.out.println("Updated directory: " + directoryPath);
 	}
 
 	public static void userControl(String user,String password)

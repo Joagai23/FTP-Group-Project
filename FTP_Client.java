@@ -56,7 +56,7 @@ public class FTP_Client {
                 result = ClientOptions.FTPClient(client, option, path);
                 System.out.println("Server says: " + result);
 
-                if(result.contains("221"))
+                if(result.contains("221") || result.contains("QUIT"))
                 {
                     connection = false;
                 }
